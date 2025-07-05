@@ -1,1 +1,1 @@
-git rm --cached node modules -r
+git rm --cached */node_modules

@@ -2,7 +2,7 @@ const request = require("request-promise");
 const cheerio = require("cheerio");
 const ObjectsToCsv = require("objects-to-csv");
 
-const url = "https://jiji.ng/cars";
+const url = process.env.LINK;
 
 const scrapeSample = {
   title: "Basic Info Scraping",
@@ -37,7 +37,7 @@ const scrapePostHeaders = async () => {
     $(".masonry-item").each((index, element) => {
       const title = $(element).find(".b-advert-title-inner").text().trim();
       const link = $(element).find(".b-list-advert-base").attr("href");
-      const url = `https://jiji.ng${link}`;
+      const url = `process.env.URL_PREFIX${link}`;
       const advertLabel_1 = $(element)
         .find(".b-list-advert-base__label__inner")
         .text()
