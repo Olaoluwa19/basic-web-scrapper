@@ -1,14 +1,6 @@
+require("dotenv").config();
 const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
-
-const sample = {
-  guests: 2,
-  location: "New York",
-  bedrooms: 1,
-  beds: 1,
-  baths: 1,
-  DollarPerNight: 100,
-};
 
 const link = process.env.LINK;
 
@@ -74,6 +66,17 @@ const scrapeHomeLinks = async (page) => {
   }
 };
 
+const sample = {
+  price: 100,
+  title: "Cozy Apartment in the Heart of Lagos",
+  location: "Lekki, Lagos, Nigeria",
+  guests: 2,
+  bedrooms: 1,
+  beds: 1,
+  baths: 1,
+  amenities: ["Wifi"],
+};
+
 const scrapeListingDetails = async (page, url) => {
   try {
     console.log(`Scraping details from ${url}...`);
@@ -83,12 +86,24 @@ const scrapeListingDetails = async (page, url) => {
     const content = await page.content();
     const $ = cheerio.load(content);
 
+    const amenities = [];
+    $("div[class='c16f2viy']").each((_, element) => {
+      // Extract amenities text
+      element.map((text) => {
+        if (text && text.trim() !== "") {
+          amenities.push(text.trim());
+        }
+      });
+    });
+
     const title = $("h1").first().text().trim();
-    const price = $("span._1y74zjx").text().trim() || "N/A"; // Price per night
+    const price = "$" + $("span.umg93v9").text().trim() || "N/A"; // Price per night
+    const location = $("span.slqk96pm").text().trim() || "N/A"; // Location
+    const description = $("span.llh825yc").text().trim() || "N/A"; // Location
     const details = {};
 
     // Example: Extract guest count, bedrooms, beds, baths (adjust selectors as needed)
-    $("div._1byskwn").each((_, element) => {
+    $("ol.lgx66tx").each((_, element) => {
       const text = $(element).text().toLowerCase();
       if (text.includes("guest")) details.guests = parseInt(text) || "N/A";
       if (text.includes("bedroom")) details.bedrooms = parseInt(text) || "N/A";
@@ -96,7 +111,7 @@ const scrapeListingDetails = async (page, url) => {
       if (text.includes("bath")) details.baths = parseInt(text) || "N/A";
     });
 
-    return { url, title, price, ...details };
+    return { url, title, price, location, description, amenities, ...details };
   } catch (error) {
     console.error(`Error scraping details from ${url}:`, error.message);
     return { url, error: error.message };
