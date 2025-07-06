@@ -40,7 +40,7 @@ const navigateToPage = async (page, url) => {
       timeout: 10000,
     });
   } catch (error) {
-    console.error("Error navigating to ${url}:", error.message);
+    console.error(`Error navigating to ${url}:`, error.message);
     throw error;
   }
 };
@@ -54,7 +54,7 @@ const scrapeHomeLinks = async (page) => {
     $("div[data-testid='card-container'] a").each((index, element) => {
       const href = $(element).attr("href");
       if (href && href.startsWith("/rooms")) {
-        homeLinks.push(`process.env.URL_PREFIX${href}`);
+        homeLinks.push(process.env.URL_PREFIX + href);
       }
     });
 
