@@ -3,6 +3,7 @@ const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
 
 const link = process.env.LINK;
+const URL_PREFIX = process.env.URL_PREFIX;
 
 const setBrowserOptions = async () => {
   try {
@@ -51,10 +52,10 @@ const scrapeHomeLinks = async (page) => {
     const $ = cheerio.load(content);
     const homeLinks = [];
 
-    $("div[data-testid='card-container'] a").each((index, element) => {
-      const href = $(element).attr("href");
-      if (href && href.startsWith("/rooms")) {
-        homeLinks.push(process.env.URL_PREFIX + href);
+    $("meta[itemprop='url']").each((index, element) => {
+      const url = "https://" + $(element).attr("content");
+      if (url) {
+        homeLinks.push(url);
       }
     });
 
@@ -87,28 +88,37 @@ const scrapeListingDetails = async (page, url) => {
     const $ = cheerio.load(content);
 
     const amenities = [];
-    $("div[class='c16f2viy']").each((_, element) => {
-      // Extract amenities text
-      element.map((text) => {
-        if (text && text.trim() !== "") {
-          amenities.push(text.trim());
-        }
-      });
+    $(".c16f2viy ._19xnuo97").each((_, element) => {
+      const text = $(element).text().trim();
+      if (text) {
+        amenities.push(text);
+      }
     });
 
     const title = $("h1").first().text().trim();
-    const price = "$" + $("span.umg93v9").text().trim() || "N/A"; // Price per night
-    const location = $("span.slqk96pm").text().trim() || "N/A"; // Location
-    const description = $("span.llh825yc").text().trim() || "N/A"; // Location
+    const price =
+      $(
+        'span[style*="--pricing-guest-primary-line-unit-price-text-decoration"]'
+      )
+        .text()
+        .trim() || "N/A";
+    const location =
+      $("section .s1qk96pm.atm_gq_p5ox87").text().trim() || "N/A"; // Location
+    const description =
+      $(
+        'div[data-section-id="DESCRIPTION_DEFAULT"] span span.l1h825yc.atm_kd_19r6f69_24z95b'
+      )
+        .text()
+        .trim() || "N/A"; // Location
     const details = {};
 
     // Example: Extract guest count, bedrooms, beds, baths (adjust selectors as needed)
-    $("ol.lgx66tx").each((_, element) => {
-      const text = $(element).text().toLowerCase();
-      if (text.includes("guest")) details.guests = parseInt(text) || "N/A";
-      if (text.includes("bedroom")) details.bedrooms = parseInt(text) || "N/A";
-      if (text.includes("bed")) details.beds = parseInt(text) || "N/A";
-      if (text.includes("bath")) details.baths = parseInt(text) || "N/A";
+    $("section .c16f2viy ._19xnuo97 ").each((_, element) => {
+      const text = $(element).find(".l7n4lsf").text().toLowerCase();
+      if (text.includes("guest")) details.guests = text || "N/A";
+      if (text.includes("bedroom")) details.bedrooms = text || "N/A";
+      if (text.includes("bed")) details.beds = text || "N/A";
+      if (text.includes("bath")) details.baths = text || "N/A";
     });
 
     return { url, title, price, location, description, amenities, ...details };
