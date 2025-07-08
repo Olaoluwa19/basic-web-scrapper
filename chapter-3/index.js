@@ -113,8 +113,8 @@ const scrapeListingDetails = async (page, url) => {
     const details = {};
 
     // Example: Extract guest count, bedrooms, beds, baths (adjust selectors as needed)
-    $("section .c16f2viy ._19xnuo97 ").each((_, element) => {
-      const text = $(element).find(".l7n4lsf").text().toLowerCase();
+    $("section ol.lgx66tx li.l7n4lsf").each((_, element) => {
+      const text = $(element).text().toLowerCase();
       if (text.includes("guest")) details.guests = text || "N/A";
       if (text.includes("bedroom")) details.bedrooms = text || "N/A";
       if (text.includes("bed")) details.beds = text || "N/A";
