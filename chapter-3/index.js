@@ -140,16 +140,8 @@ const closeBrowser = async (browser) => {
   }
 };
 
-const scrapeAirbnb = async (url) => {
-  let browser;
+const getListing = async (page, links) => {
   try {
-    const { browser: puppeteerBrowser, page } = await setBrowserOptions();
-    browser = puppeteerBrowser;
-
-    await setUserAgent(page);
-    await navigateToPage(page, url);
-    const links = await scrapeHomeLinks(page);
-
     // Scrape details for each link
     const listings = [];
     for (const link of links) {
@@ -159,7 +151,24 @@ const scrapeAirbnb = async (url) => {
 
     return listings;
   } catch (error) {
-    console.error("Scraping failed:", error.message);
+    console.error("Error getting listings:", error.message);
+    throw error;
+  }
+};
+
+const scrapeAirbnb = async (url) => {
+  let browser;
+  try {
+    const { browser: puppeteerBrowser, page } = await setBrowserOptions();
+    browser = puppeteerBrowser;
+
+    await setUserAgent(page);
+    await navigateToPage(page, url);
+    const links = await scrapeHomeLinks(page);
+    const listings = await getListing(page, links);
+    console.log("Scraping completed:", JSON.stringify(listings, null, 2));
+  } catch (error) {
+    console.error("Scraping Failed:", error.message);
     throw error;
   } finally {
     await closeBrowser(browser);
@@ -169,8 +178,7 @@ const scrapeAirbnb = async (url) => {
 // Run the scraper
 const main = async () => {
   try {
-    const listings = await scrapeAirbnb(link);
-    console.log("Scraping completed:", JSON.stringify(listings, null, 2));
+    return await scrapeAirbnb(link);
   } catch (error) {
     console.error("Main execution failed:", error.message);
   }
